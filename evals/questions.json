@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "description": "Test database for agent evaluation. Each question has an expected answer with key assertions the agent's response should satisfy.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which airports in New England are strong candidates for terminal expansion?",
+      "source": "assignment",
+      "expected": {
+        "summary": "Should identify BOS (Boston Logan) as the top candidate, with smaller airports like BDL (Hartford), PVD (Providence), or MHT (Manchester) as secondary options.",
+        "must_include": [
+          "BOS or Boston Logan mentioned as a primary candidate",
+          "At least 2 other New England airports mentioned",
+          "Deterministic scores or rankings provided",
+          "Reasoning tied to congestion, growth, or capacity data"
+        ],
+        "must_not_include": [
+          "Airports outside New England (CT, ME, MA, NH, RI, VT)",
+          "Made-up statistics without data source attribution"
+        ]
+      }
+    },
+    {
+      "id": "q2",
+      "question": "Compare LA and Santa Ana airport congestion levels.",
+      "source": "assignment",
+      "expected": {
+        "summary": "Should compare LAX (Los Angeles International) with SNA (John Wayne / Orange County). LAX should show significantly higher congestion.",
+        "must_include": [
+          "LAX identified as Los Angeles International",
+          "SNA identified as John Wayne / Orange County Airport",
+          "Congestion metrics compared side-by-side",
+          "LAX shown as more congested than SNA"
+        ],
+        "must_not_include": [
+          "Confusing Santa Ana with another airport",
+          "Congestion numbers without data backing"
+        ]
+      }
+    },
+    {
+      "id": "q3",
+      "question": "What is the percentage of long haul flights out of Anchorage airport?",
+      "source": "assignment",
+      "expected": {
+        "summary": "Should identify ANC (Ted Stevens Anchorage International) and provide a percentage of flights over 1,500 miles. Anchorage has an unusually high long-haul ratio due to geography — most destinations from Alaska are far away. Also significant cargo hub.",
+        "must_include": [
+          "ANC identified correctly",
+          "A specific percentage or ratio provided",
+          "Acknowledgment that Alaska's geography makes most flights long-haul",
+          "Definition of what counts as 'long haul' (e.g., >1500 miles)"
+        ],
+        "must_not_include": [
+          "A percentage that seems made up without methodology"
+        ]
+      }
+    },
+    {
+      "id": "q4",
+      "question": "What is the unmet flight demand in SFO airport and why?",
+      "source": "assignment",
+      "expected": {
+        "summary": "Should discuss SFO's capacity constraints (runway configuration, fog delays, slot limitations) and how demand exceeds what the airport can physically handle. Nearby airports (OAK, SJC) absorb overflow.",
+        "must_include": [
+          "SFO identified as San Francisco International",
+          "Capacity constraints mentioned (runways, weather, slots)",
+          "Quantified gap between demand and capacity if data available",
+          "Mention of nearby airports absorbing overflow demand"
+        ],
+        "must_not_include": [
+          "Claiming SFO has no capacity issues"
+        ]
+      }
+    }
+  ]
+}
