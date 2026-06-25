@@ -178,4 +178,26 @@ Vite is a lightweight build tool that does exactly what we need — fast dev ser
 
 ---
 
+## Entry 8 — Migrate FAA Live Status API (June 25, 2026)
+
+### The Problem
+The `get_airport_status` tool calls the FAA's Airport Status Web Service at `soa.smext.faa.gov/asws/api/airport/status/{IATA}` for live delay and closure data. This endpoint started returning DNS resolution failures (NXDOMAIN) — the FAA retired the hostname.
+
+### The Decision: Switch to the FAA NAS Status API
+The replacement endpoint is `nasstatus.faa.gov/api/airport-status-information`. Key differences from the old API:
+
+- **Single endpoint, all airports:** Returns one XML document covering all US airports, instead of per-airport JSON. We fetch once and filter by IATA code.
+- **XML instead of JSON:** Requires parsing with `xml.etree.ElementTree` instead of `response.json()`.
+- **Categorized events:** The response groups events by type (closures, ground stops, delays), so we surface that structure to the LLM.
+
+### What we considered
+- **Remove the tool entirely:** The tool isn't used for scoring, so we could drop it. But live status adds real value for an investment analyst — knowing an airport is currently experiencing ground stops or closures adds context. It also demonstrates the agent can combine static analysis with real-time data.
+- **Mock/stub the response:** Would make the demo more predictable, but undermines the point of having a live data tool.
+
+### Tradeoffs
+- The new API returns everything in one call, so we parse more data than needed per request. For ~60 airports this is negligible.
+- If the FAA moves this endpoint again, the same failure mode returns. The error handling remains in place for graceful degradation.
+
+---
+
 *Entries will be added as development progresses...*

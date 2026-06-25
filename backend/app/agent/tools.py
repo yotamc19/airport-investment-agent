@@ -1,4 +1,5 @@
 import json
+import xml.etree.ElementTree as ET
 from typing import Any
 
 import httpx
@@ -212,16 +213,58 @@ async def handle_get_flight_distribution(iata_code: str) -> dict[str, Any]:
 
 
 async def handle_get_airport_status(iata_code: str) -> dict[str, Any]:
-    url = f"{settings.faa_api_base_url}/{iata_code.upper()}"
+    iata = iata_code.upper().strip()
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(url)
-            if response.status_code == 200:
-                return {"source": "FAA ASWS (live)", "data": response.json()}
-            return {
-                "error": f"FAA API returned status {response.status_code}",
-                "note": "Live status unavailable; historical data from other tools is still valid",
-            }
+            response = await client.get(settings.faa_api_base_url)
+            if response.status_code != 200:
+                return {
+                    "error": f"FAA API returned status {response.status_code}",
+                    "note": "Live status unavailable; historical data from other tools is still valid",
+                }
+
+        root = ET.fromstring(response.text)
+        update_time = root.findtext("Update_Time", "")
+
+        delays: list[dict[str, Any]] = []
+        closures: list[dict[str, Any]] = []
+        ground_stops: list[dict[str, Any]] = []
+
+        for delay_type in root.findall("Delay_type"):
+            category = delay_type.findtext("Name", "")
+
+            for airport_el in delay_type.iter("Airport"):
+                arpt = airport_el.findtext("ARPT", "")
+                if arpt != iata:
+                    continue
+
+                entry = {sub.tag: sub.text for sub in airport_el if sub.text}
+
+                if "Closure" in category:
+                    closures.append(entry)
+                elif "Ground Stop" in category:
+                    ground_stops.append(entry)
+                else:
+                    delays.append(entry)
+
+        has_issues = bool(delays or closures or ground_stops)
+
+        result: dict[str, Any] = {
+            "source": "FAA NAS Status (live)",
+            "iata": iata,
+            "update_time": update_time,
+            "status": "delays/closures reported" if has_issues else "no delays reported",
+        }
+
+        if delays:
+            result["delays"] = delays
+        if closures:
+            result["closures"] = closures
+        if ground_stops:
+            result["ground_stops"] = ground_stops
+
+        return result
+
     except httpx.TimeoutException:
         return {
             "error": "FAA API timed out",
