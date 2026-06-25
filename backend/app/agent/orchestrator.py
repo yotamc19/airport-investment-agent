@@ -45,6 +45,8 @@ async def run_agent(
             text = "".join(
                 b.text for b in response.content if hasattr(b, "text")
             )
+            if not tool_calls_log:
+                text = text.split("\n")[0].rstrip()
             logger.info("--- Done after %d tool call round(s)", iteration)
             return text, messages, tool_calls_log
 

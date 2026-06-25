@@ -62,6 +62,7 @@ export default function App() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    inputRef.current?.focus();
 
     try {
       const res = await fetch("http://localhost:8000/chat", {
@@ -90,7 +91,7 @@ export default function App() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     sendMessage(input);
   }
@@ -233,7 +234,6 @@ export default function App() {
             placeholder="Ask about airport investment opportunities..."
             rows={1}
             className="flex-1 resize-none overflow-hidden rounded-[var(--w-radius-card)] border border-border bg-surface-alt px-4 py-3 text-sm text-body placeholder-placeholder outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
-            disabled={isLoading}
           />
           {sttSupported && (
             <button
