@@ -37,7 +37,7 @@ async def run_agent(
             logger.error("Claude API error: %s", error_msg)
             return error_msg, messages, tool_calls_log
 
-        messages.append({"role": "assistant", "content": response.content})
+        messages.append({"role": "assistant", "content": [b.model_dump() for b in response.content]})
 
         tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
 
