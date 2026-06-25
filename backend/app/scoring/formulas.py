@@ -2,11 +2,16 @@ from app.scoring.models import Airport, AirportStats
 
 
 def compute_congestion(stats: AirportStats, airport: Airport) -> float:
+    # Three components: delays (0-50), seat fullness (0-30), gate pressure (0-20)
+
+    # 30+ min avg delay = max score
     delay_score = min(stats.avg_departure_delay_min / 30.0, 1.0) * 50
 
+    # Load factor above 70% baseline, maxes at 95%
     load_pressure = max(stats.load_factor - 0.70, 0) / 0.25
     load_score = min(load_pressure, 1.0) * 30
 
+    # 6+ flights/gate/day = max score
     if airport.estimated_gates > 0:
         daily_flights = stats.total_departures / 365
         flights_per_gate = daily_flights / airport.estimated_gates
@@ -18,6 +23,7 @@ def compute_congestion(stats: AirportStats, airport: Airport) -> float:
 
 
 def compute_growth(stats: AirportStats) -> float | None:
+    # Linear scale: -5% YoY → 0, +10% YoY → 100
     if stats.passenger_growth_yoy_pct is None:
         return None
     score = ((stats.passenger_growth_yoy_pct + 5) / 15) * 100
@@ -25,6 +31,7 @@ def compute_growth(stats: AirportStats) -> float | None:
 
 
 def compute_capacity_gap(stats: AirportStats) -> float:
+    # Linear scale: 50% utilization → 0, 100%+ utilization → 100
     if stats.estimated_annual_capacity <= 0:
         return 50.0
     utilization = stats.total_departures / stats.estimated_annual_capacity
@@ -33,6 +40,7 @@ def compute_capacity_gap(stats: AirportStats) -> float:
 
 
 def compute_long_haul_ratio(stats: AirportStats) -> float:
+    # Percentage of flights over 1,500 miles (transcontinental/international)
     total = (
         stats.flights_under_500mi
         + stats.flights_500_to_1000mi
@@ -50,6 +58,7 @@ def compute_investment_score(
     capacity_gap: float,
     long_haul_ratio: float,
 ) -> tuple[float, list[str]]:
+    # Weighted composite: congestion 30%, capacity gap 30%, growth 25%, long-haul 15%
     assumptions: list[str] = []
 
     if growth is None:
