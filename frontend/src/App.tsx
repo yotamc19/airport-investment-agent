@@ -33,6 +33,8 @@ export default function App() {
   const { isListening, transcript, startListening, stopListening, isSupported: sttSupported } = useVoiceInput();
   const { isSpeaking, speak, stop: stopSpeaking, isSupported: ttsSupported } = useVoiceOutput();
   const [autoSpeak, setAutoSpeak] = useState(false);
+  const autoSpeakRef = useRef(autoSpeak);
+  autoSpeakRef.current = autoSpeak;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -79,7 +81,7 @@ export default function App() {
         ...prev,
         { role: "assistant", content: data.response, toolCalls: data.tool_calls },
       ]);
-      if (autoSpeak && ttsSupported) speak(data.response);
+      if (autoSpeakRef.current && ttsSupported) speak(data.response);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
