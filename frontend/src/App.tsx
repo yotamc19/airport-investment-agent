@@ -240,7 +240,7 @@ export default function App() {
           {sttSupported && (
             <button
               type="button"
-              onClick={isListening ? stopListening : startListening}
+              onClick={isListening ? stopListening : () => { if (isSpeaking) stopSpeaking(); startListening(); }}
               disabled={isLoading}
               aria-label={isListening ? "Stop recording" : "Start recording"}
               className={`rounded-full p-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
