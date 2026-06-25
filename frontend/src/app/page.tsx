@@ -2,6 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { useVoiceOutput } from "@/hooks/useVoiceOutput";
 
 type ToolCall = {
   tool: string;
@@ -29,6 +32,9 @@ export default function Home() {
   const [history, setHistory] = useState<Record<string, unknown>[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { isListening, transcript, startListening, stopListening, isSupported: sttSupported } = useVoiceInput();
+  const { isSpeaking, speak, stop: stopSpeaking, isSupported: ttsSupported } = useVoiceOutput();
+  const [autoSpeak, setAutoSpeak] = useState(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -38,8 +44,21 @@ export default function Home() {
     inputRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    if (transcript) setInput(transcript);
+  }, [transcript]);
+
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+    el.scrollTop = el.scrollHeight;
+  }, [input]);
+
   async function sendMessage(text: string) {
     if (!text.trim() || isLoading) return;
+    if (isListening) stopListening();
 
     const userMsg: Message = { role: "user", content: text.trim() };
     setMessages((prev) => [...prev, userMsg]);
@@ -61,6 +80,7 @@ export default function Home() {
         ...prev,
         { role: "assistant", content: data.response, toolCalls: data.tool_calls },
       ]);
+      if (autoSpeak && ttsSupported) speak(data.response);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -72,7 +92,7 @@ export default function Home() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     sendMessage(input);
   }
@@ -92,21 +112,34 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
-      <header className="shrink-0 border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+    <div className="flex h-screen flex-col bg-bg">
+      <header className="shrink-0 border-b border-border bg-surface px-6 py-4">
+        <h1 className="text-lg font-semibold text-heading">
           Airport Investment Intelligence
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          AI-powered analysis of US airport modernization opportunities
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted">
+            AI-powered analysis of US airport modernization opportunities
+          </p>
+          {ttsSupported && (
+            <label className="flex items-center gap-2 text-xs text-muted cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={autoSpeak}
+                onChange={(e) => setAutoSpeak(e.target.checked)}
+                className="accent-primary"
+              />
+              Auto-speak
+            </label>
+          )}
+        </div>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6">
         <div className="mx-auto max-w-3xl space-y-4">
           {messages.length === 0 && !isLoading && (
             <div className="py-12">
-              <p className="mb-6 text-center text-zinc-500 dark:text-zinc-400">
+              <p className="mb-6 text-center text-muted">
                 Ask about airport investment opportunities, congestion metrics, or regional comparisons.
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -114,7 +147,7 @@ export default function Home() {
                   <button
                     key={s}
                     onClick={() => sendMessage(s)}
-                    className="rounded-lg border border-zinc-200 px-4 py-3 text-left text-sm text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-500 dark:hover:bg-zinc-800"
+                    className="rounded-[var(--w-radius-card)] border border-border bg-surface px-4 py-3 text-left text-sm text-secondary transition-colors hover:border-primary hover:bg-primary-tint"
                   >
                     {s}
                   </button>
@@ -126,21 +159,21 @@ export default function Home() {
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                className={`max-w-[85%] rounded-[var(--w-radius-message)] px-4 py-3 text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "bg-white text-zinc-800 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700"
+                    ? "bg-primary text-white"
+                    : "bg-surface text-body shadow-sm ring-1 ring-border"
                 }`}
               >
                 {msg.toolCalls && msg.toolCalls.length > 0 && (
-                  <div className="mb-3 space-y-1.5 border-b border-zinc-100 pb-3 dark:border-zinc-700">
-                    <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500">
+                  <div className="mb-3 space-y-1.5 border-b border-border pb-3">
+                    <p className="text-xs font-medium text-muted">
                       Tools called:
                     </p>
                     {msg.toolCalls.map((tc, j) => (
                       <div
                         key={j}
-                        className="rounded-md bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
+                        className="rounded-md bg-primary-tint px-2.5 py-1.5 font-mono text-xs text-heading"
                       >
                         {tc.tool}({formatToolInput(tc.input)})
                       </div>
@@ -150,9 +183,28 @@ export default function Home() {
                 {msg.role === "user" ? (
                   <div className="whitespace-pre-wrap">{msg.content}</div>
                 ) : (
-                  <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none [&_table]:text-xs [&_th]:px-2 [&_th]:py-1 [&_td]:px-2 [&_td]:py-1 [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-200 [&_td]:border [&_td]:border-zinc-200 dark:[&_th]:border-zinc-700 dark:[&_td]:border-zinc-700">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
+                  <>
+                    <div className="prose prose-sm max-w-none prose-headings:text-heading prose-p:text-body prose-strong:text-heading prose-a:text-accent [&_table]:w-full [&_table]:text-xs [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold [&_th]:bg-surface-alt [&_td]:px-3 [&_td]:py-2 [&_table]:border-collapse [&_th]:border [&_th]:border-border [&_td]:border [&_td]:border-border [&_table]:overflow-x-auto">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                    </div>
+                    {ttsSupported && (
+                      <button
+                        type="button"
+                        onClick={() => isSpeaking ? stopSpeaking() : speak(msg.content)}
+                        className="mt-2 flex items-center gap-1 text-xs text-muted hover:text-primary transition-colors"
+                        aria-label={isSpeaking ? "Stop speaking" : "Read aloud"}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+                          {isSpeaking ? (
+                            <rect x="5" y="5" width="10" height="10" rx="1.5" />
+                          ) : (
+                            <path d="M10 3.75a.75.75 0 00-1.264-.546L5.203 6H3.75A.75.75 0 003 6.75v6.5c0 .414.336.75.75.75h1.453l3.533 2.796A.75.75 0 0010 16.25V3.75zM15.95 5.05a.75.75 0 00-1.06 1.06 4.5 4.5 0 010 6.364.75.75 0 001.06 1.06 6 6 0 000-8.485z" />
+                          )}
+                        </svg>
+                        <span>{isSpeaking ? "Stop" : "Listen"}</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -160,12 +212,12 @@ export default function Home() {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+              <div className="rounded-[var(--w-radius-message)] bg-surface px-4 py-3 shadow-sm ring-1 ring-border">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" />
-                  <span className="ml-2 text-xs text-zinc-400">Analyzing...</span>
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                  <span className="ml-2 text-xs text-muted">Analyzing...</span>
                 </div>
               </div>
             </div>
@@ -173,8 +225,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl gap-3">
+      <div className="shrink-0 border-t border-border bg-surface p-4">
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-3">
           <textarea
             ref={inputRef}
             value={input}
@@ -182,13 +234,37 @@ export default function Home() {
             onKeyDown={handleKeyDown}
             placeholder="Ask about airport investment opportunities..."
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-zinc-400 dark:focus:ring-zinc-700"
+            className="flex-1 resize-none overflow-hidden rounded-[var(--w-radius-card)] border border-border bg-surface-alt px-4 py-3 text-sm text-body placeholder-placeholder outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
             disabled={isLoading}
           />
+          {sttSupported && (
+            <button
+              type="button"
+              onClick={isListening ? stopListening : startListening}
+              disabled={isLoading}
+              aria-label={isListening ? "Stop recording" : "Start recording"}
+              className={`rounded-full p-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                isListening
+                  ? "bg-error text-white recording-pulse"
+                  : "bg-surface-alt text-muted hover:text-heading hover:bg-primary-tint"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                {isListening ? (
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                ) : (
+                  <>
+                    <path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3z" />
+                    <path d="M17 11a1 1 0 10-2 0 3 3 0 01-6 0 1 1 0 10-2 0 5 5 0 004 4.9V18H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.1A5 5 0 0017 11z" />
+                  </>
+                )}
+              </svg>
+            </button>
+          )}
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="rounded-xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Send
           </button>

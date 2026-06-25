@@ -1,27 +1,66 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ============================================
+   Wonderful Design Tokens
+   Edit these variables to change the palette.
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --w-primary: #03a97e;
+  --w-primary-hover: #028a68;
+  --w-primary-tint: #d2eee7;
+  --w-bg: #fafafa;
+  --w-surface: #ffffff;
+  --w-surface-alt: #f5f5f7;
+  --w-text-heading: #050505;
+  --w-text-primary: #1d1d1f;
+  --w-text-secondary: #393939;
+  --w-text-muted: #6b6b6b;
+  --w-text-placeholder: #9ba1a5;
+  --w-border: #e6e6e6;
+  --w-accent-blue: #3286f5;
+  --w-error: #ff3f3f;
+  --w-radius-pill: 9999px;
+  --w-radius-card: 8px;
+  --w-radius-message: 20px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-primary: var(--w-primary);
+  --color-primary-hover: var(--w-primary-hover);
+  --color-primary-tint: var(--w-primary-tint);
+  --color-bg: var(--w-bg);
+  --color-surface: var(--w-surface);
+  --color-surface-alt: var(--w-surface-alt);
+  --color-heading: var(--w-text-heading);
+  --color-body: var(--w-text-primary);
+  --color-secondary: var(--w-text-secondary);
+  --color-muted: var(--w-text-muted);
+  --color-placeholder: var(--w-text-placeholder);
+  --color-border: var(--w-border);
+  --color-accent: var(--w-accent-blue);
+  --color-error: var(--w-error);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light only;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--w-bg);
+  color: var(--w-text-primary);
+  font-family: var(--font-inter), Inter, sans-serif;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(3, 169, 126, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(3, 169, 126, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(3, 169, 126, 0); }
+}
+
+.recording-pulse {
+  animation: pulse-ring 1.5s ease-in-out infinite;
 }
