@@ -24,6 +24,10 @@ Run the full evaluation suite from `evals/questions.json` against the agent.
    ```
 4. Print overall pass rate and list any regressions (questions that previously passed but now fail)
 5. If any question scores below 50%, suggest adding it to a "needs attention" list
+6. Compute and print a **final score from 0 to 100** at the very end using this formula:
+   - For each question, compute: (must_include items satisfied / total must_include items) * 100. If any must_not_include assertion is violated, multiply the question score by 0.5 (50% penalty per violation, stacking).
+   - Final score = average of all question scores, rounded to the nearest integer.
+   - Print it clearly as the last line: `**Final Score: XX/100**`
 
 ## Important
 - If the agent server is not running, start it first
