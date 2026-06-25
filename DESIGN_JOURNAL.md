@@ -100,4 +100,62 @@ The test DB starts small (the 4 examples from the assignment) and grows as we di
 
 ---
 
+## Entry 4 — Data Strategy: Static + Live Hybrid (June 25, 2026)
+
+### The Problem
+The assignment says "use public APIs to gather airport/aviation data." But real aviation APIs (AviationStack, BTS SODA) have rate limits, can be slow, and might be down during the interview demo. How do we satisfy the API requirement without risking a broken demo?
+
+### The Decision: Hybrid — static JSON for historical stats, live FAA API for real-time status
+
+**Historical stats (static):** Passenger counts, delays, growth, flight distributions — these are published annually by BTS and don't change day-to-day. Bundled as `airports.json` (62 airports) and `airport_stats.json` (4 years per airport). The scoring engine runs entirely on this data.
+
+**Real-time status (live API):** The FAA Airport Status API (`soa.smext.faa.gov`) provides current delays, ground stops, and weather. Free, no key needed, reliable. This is the `get_airport_status` tool — it's the only tool making a real HTTP call.
+
+**Timeframe: 2019 + 2022-2024.** We include 2019 as a pre-COVID baseline and skip 2020-2021 (anomaly years that would distort growth trends). This gives us real recovery trajectory data — is the airport growing vs its own pre-COVID peak?
+
+### Alternatives Considered
+- **All live API:** More impressive but fragile. AviationStack's free tier gives ~100 requests/month — one demo could exhaust it.
+- **All static:** Reliable but doesn't satisfy the "use public APIs" requirement.
+- **Multiple live APIs:** More code for marginal benefit. One live API demonstrates the pattern; the interviewer can see it works.
+
+### Tradeoff
+Static data is frozen at 2024. We document this assumption in the system prompt and every score result, so the agent always tells the user the data vintage.
+
+---
+
+## Entry 5 — Tool Call Observability (June 25, 2026)
+
+### The Problem
+When the agent takes 10 seconds to answer, the user stares at a loading spinner with no idea what's happening. And during development, we need to see which tools the agent calls and whether the results make sense.
+
+### The Decision: Log tool calls server-side AND display them in the frontend
+
+**Server-side:** Each tool call logs to stdout with name, input, and result preview. The terminal shows the full reasoning chain as it happens.
+
+**Client-side:** The `/chat` response includes a `tool_calls` array. The frontend renders a "Tools called" section above each assistant message showing exactly which tools were invoked (e.g., `search_airports(query="New England")`, `score_airport(iata_code="BOS")`).
+
+### Why This Matters
+For the interview, this is a differentiator. It shows the agent isn't a black box — the interviewer can see the agent's reasoning process. It also builds trust: you can verify the agent called the right tools and used real data.
+
+### What We Didn't Do (Yet)
+Server-Sent Events for live streaming of tool calls as they happen. The user sees them only after all tools complete. This is a future polish item — adds complexity without changing correctness.
+
+---
+
+## Entry 6 — LLM Model Choice: Sonnet over Opus (June 25, 2026)
+
+### The Problem
+Which Claude model should the agent use? The Anthropic API offers several options with different capability/cost/speed tradeoffs.
+
+### The Decision: Claude Sonnet 4.6 (`claude-sonnet-4-6`)
+
+**Why not Opus?** The LLM's job is orchestration — deciding which tools to call and interpreting deterministic results. This doesn't require frontier-level reasoning. Sonnet handles tool-calling and natural language interpretation well. Opus costs ~5x more and is slower, which means longer wait times for the user with no meaningful quality improvement.
+
+**Why not Haiku?** Haiku is fast and cheap but may produce less nuanced interpretations. For an interview demo where response quality matters, Sonnet is the sweet spot.
+
+### Key Insight
+The scoring quality doesn't depend on the LLM at all — scores are deterministic Python. The LLM only needs to: (1) parse user intent correctly, (2) call the right tools, (3) explain the results clearly. Sonnet does all three well.
+
+---
+
 *Entries will be added as development progresses...*

@@ -32,12 +32,13 @@ This repo is a take-home assignment. The interviewer WILL read the git history. 
 ## Steps
 
 1. Run `git status` and `git diff` to see all changes
-2. Group changes into logical commits — ask yourself "would the interviewer understand why these files changed together?"
-3. For each logical group:
+2. **Design Journal check:** Review the changes and ask — did we make any architectural, design, scoring, or data decisions? If yes, append a new numbered entry to `DESIGN_JOURNAL.md` BEFORE committing. Read the journal first to get the next entry number and avoid duplicates. Each entry needs: title, date, the problem, the decision, alternatives considered, and tradeoffs. Commit the journal update alongside the related code changes.
+3. Group changes into logical commits — ask yourself "would the interviewer understand why these files changed together?"
+4. For each logical group:
    a. Stage only the relevant files (never `git add -A` blindly)
    b. Write a clear commit message that explains the WHY, not just the WHAT
    c. Commit
-4. Push to remote
+5. Push to remote
 
 ## Important
 - If unsure how to split changes, ask the user
