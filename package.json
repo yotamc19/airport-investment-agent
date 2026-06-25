@@ -1,0 +1,12 @@
+{
+  "name": "airport-investment-agent",
+  "private": true,
+  "scripts": {
+    "install:client": "cd frontend && bun install",
+    "install:server": "cd backend && python -m venv venv && . venv/bin/activate && pip install -e '.[dev]'",
+    "install": "bun run install:client && bun run install:server",
+    "client": "cd frontend && bun run dev",
+    "server": "cd backend && . venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+    "dev": "bun run server & bun run client"
+  }
+}

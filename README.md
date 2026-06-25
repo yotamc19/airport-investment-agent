@@ -56,25 +56,30 @@ Create a `.env` file in the project root:
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### 2. Start the backend
+### 2. Install dependencies
 
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -e .
-uvicorn app.main:app --reload --port 8000
+bun run install
 ```
 
-### 3. Start the frontend
+This installs frontend packages and creates the backend Python virtualenv with all dependencies.
+
+### 3. Start developing
 
 ```bash
-cd frontend
-bun install
-bun dev
+bun run dev
 ```
 
-Open **http://localhost:5173** and start chatting! 💬
+This starts both the backend (port 8000) and frontend (port 5173) in parallel.
+
+You can also start them individually:
+
+```bash
+bun run client   # frontend only
+bun run server   # backend only
+```
+
+Open **http://localhost:5173** and start chatting!
 
 ---
 
