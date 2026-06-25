@@ -4,7 +4,7 @@
 AI-powered agent that helps analysts identify promising airport investment opportunities for terminal expansion and modernization. Built as a take-home assignment for Wonderful (agent startup).
 
 ## Architecture
-- **Frontend:** Next.js + React chat interface
+- **Frontend:** Vite + React chat interface
 - **Backend:** Python + FastAPI — LLM orchestrator with tool-calling pattern
 - **Scoring Layer:** Pure Python, deterministic — no LLM involved in number crunching
 - **LLM Role:** Orchestrator only — decides which tools to call, interprets deterministic results, explains reasoning to the user
@@ -14,7 +14,7 @@ The LLM has NO pre-loaded aviation knowledge. It calls tools (Python functions) 
 ## Tech Stack
 - `bun` for frontend package management
 - Python with FastAPI for backend
-- Next.js + React for chat UI
+- Vite + React for chat UI
 
 ## Key Files
 - `DESIGN_JOURNAL.md` — Chronological decision log. Shows the interviewer how we thought through the problem.

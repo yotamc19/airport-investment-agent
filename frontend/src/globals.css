@@ -41,8 +41,8 @@
   --color-border: var(--w-border);
   --color-accent: var(--w-accent-blue);
   --color-error: var(--w-error);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "Geist Mono", monospace;
 }
 
 html {
@@ -52,7 +52,7 @@ html {
 body {
   background: var(--w-bg);
   color: var(--w-text-primary);
-  font-family: var(--font-inter), Inter, sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 @keyframes pulse-ring {

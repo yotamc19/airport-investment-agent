@@ -158,4 +158,24 @@ The scoring quality doesn't depend on the LLM at all — scores are deterministi
 
 ---
 
+## Entry 7 — Replace Next.js with Vite (June 25, 2026)
+
+### The Problem
+The frontend uses Next.js, but we don't use any of its distinguishing features: no server-side rendering, no file-based routing, no API routes (the API is a separate Python backend). The app is a single-page chat UI.
+
+### The Decision: Swap to Vite + React
+Vite is a lightweight build tool that does exactly what we need — fast dev server, HMR, and production bundling — without the abstraction overhead of a full framework.
+
+### What we considered
+- **Keep Next.js:** Familiar, but adds ~10 config files and concepts (App Router, `"use client"` directives, `next/font`, server components) that don't serve us. Extra complexity with no benefit is a code smell in a take-home.
+- **Vite:** Minimal config (`vite.config.ts`, `index.html`, `main.tsx`). Same `bun run dev` workflow. No framework concepts to explain away.
+- **Parcel / esbuild direct:** Even lighter, but Vite's React plugin and Tailwind integration are more mature and well-documented.
+
+### Tradeoffs
+- Lost Next.js's built-in font optimization (`next/font`) — replaced with a standard Google Fonts `<link>`. Negligible impact for an internal tool / demo.
+- Lost built-in ESLint config (`eslint-config-next`) — removed for now; can add a standalone config if needed.
+- CORS origin updated from port 3000 to 5173 (Vite's default).
+
+---
+
 *Entries will be added as development progresses...*
