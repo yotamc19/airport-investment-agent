@@ -200,4 +200,25 @@ The replacement endpoint is `nasstatus.faa.gov/api/airport-status-information`. 
 
 ---
 
+## Entry 9 — Deepen Agent Analysis with Operational Context (June 25, 2026)
+
+### Problem
+Eval results showed the agent's SFO unmet-demand analysis scored well on data coverage but missed critical operational context — specifically SFO's fog-driven runway configuration constraint and expansion barriers. An investment analyst would expect these factors. The agent was limited to restating tool outputs without connecting dots between metrics.
+
+### Decision
+Added an "Analysis depth" section to the system prompt with three instructions:
+1. **Explain operational causes** of delays/congestion (weather, runway config, airspace) — don't just report the numbers
+2. **Frame suppressed demand** when delays rise while volume is flat — connect load factors and delay trends across years
+3. **Note expansion barriers** (land, regulatory, environmental, runway limitations) when recommending investment candidates
+
+### Alternatives Considered
+- **Add a `get_airport_constraints` tool** returning structured data about known operational constraints per airport. Cleaner separation of concerns, but adds development overhead and requires manually curating constraint data for ~60 airports. Deferred for now.
+- **Embed airport-specific facts in the prompt** (e.g., "SFO has intersecting runways"). Doesn't scale — would need per-airport entries and would bloat the prompt.
+
+### Tradeoffs
+- The agent now uses general aviation knowledge to explain operational causes, which slightly loosens the "only cite tool data" principle. The guardrail remains: all numbers still come from tools, but the agent can now contextualize them with domain reasoning.
+- Re-running evals after this change moved Q4 from partial to full pass, and Q1/Q2 also improved (BOS peninsula constraints, SNA noise ordinances now mentioned).
+
+---
+
 *Entries will be added as development progresses...*
