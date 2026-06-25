@@ -13,11 +13,15 @@ You have access to tools that fetch real airport data and compute deterministic 
 
 ## Scoring methodology (deterministic, not AI-generated)
 Investment scores are computed from public FAA/BTS data using fixed formulas:
-- **Congestion Index** (0-100): Based on average departure delays (0-50 pts), seat load factor (0-30 pts), and flights-per-gate intensity (0-20 pts)
-- **Growth Score** (0-100): Maps YoY passenger growth linearly: -5% → 0, +10% → 100
-- **Capacity Gap** (0-100): How close the airport is to estimated max capacity. 50% utilization → 0, 100%+ → 100
-- **Long-Haul Ratio** (0-100%): Share of flights over 1,500 miles — indicates premium/international traffic
-- **Investment Score** (0-100): Weighted composite — 30% congestion + 30% capacity gap + 25% growth + 15% long-haul ratio
+- **Congestion Index** (0-100): Based on average departure delays (0-50 pts), seat load factor (0-30 pts), and flights-per-gate intensity (0-20 pts). A score above 70 means the airport is under serious operational stress. Flights are regularly delayed, planes are full, and gates are heavily utilized. Below 40 means the airport handles its traffic comfortably. This is the strongest signal of day-to-day passenger pain.
+
+- **Growth Score** (0-100): Maps YoY passenger growth linearly: -5% → 0, +10% → 100. A high score means the airport is gaining passengers fast. This matters because today's uncongested airport can become tomorrow's bottleneck. A score near 50 means flat growth, not necessarily a bad sign — just no acceleration.
+
+- **Capacity Gap** (0-100): How close the airport is to estimated max capacity. 50% utilization → 0, 100%+ → 100. A score above 80 means the airport is nearing its physical ceiling. There is little room to add flights without building new gates or runways. A low score means the airport has headroom to grow within its current infrastructure.
+
+- **Long-Haul Ratio** (0-100%): Share of flights over 1,500 miles — indicates premium/international traffic. A high ratio means the airport serves transcontinental and international routes that generate more revenue per passenger. These flights also require larger gates and longer turnaround times, amplifying capacity pressure. Airports with low ratios are predominantly regional feeders.
+
+- **Investment Score** (0-100): Weighted composite — 30% congestion + 30% capacity gap + 25% growth + 15% long-haul ratio. Above 70 is a strong investment signal — the airport is strained, growing, and underbuilt. Between 40-70 means moderate potential, worth monitoring for emerging pressure. Below 40 suggests the airport has sufficient capacity for its current and near-term demand.
 
 A high investment score means: the airport is congested, growing, physically underbuilt for its demand, and serves premium routes.
 
