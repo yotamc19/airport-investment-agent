@@ -1,10 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect, FormEvent } from "react";
+import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+
+type ToolCall = {
+  tool: string;
+  input: Record<string, unknown>;
+  result_preview: string;
+};
 
 type Message = {
   role: "user" | "assistant";
   content: string;
+  toolCalls?: ToolCall[];
 };
 
 const SUGGESTIONS = [
@@ -49,7 +57,10 @@ export default function Home() {
 
       const data = await res.json();
       setHistory(data.history);
-      setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.response, toolCalls: data.tool_calls },
+      ]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -61,7 +72,7 @@ export default function Home() {
     }
   }
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     sendMessage(input);
   }
@@ -71,6 +82,13 @@ export default function Home() {
       e.preventDefault();
       sendMessage(input);
     }
+  }
+
+  function formatToolInput(input: Record<string, unknown>): string {
+    const parts = Object.entries(input).map(([k, v]) =>
+      typeof v === "string" ? `${k}="${v}"` : `${k}=${JSON.stringify(v)}`
+    );
+    return parts.join(", ");
   }
 
   return (
@@ -114,7 +132,28 @@ export default function Home() {
                     : "bg-white text-zinc-800 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-700"
                 }`}
               >
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+                {msg.toolCalls && msg.toolCalls.length > 0 && (
+                  <div className="mb-3 space-y-1.5 border-b border-zinc-100 pb-3 dark:border-zinc-700">
+                    <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500">
+                      Tools called:
+                    </p>
+                    {msg.toolCalls.map((tc, j) => (
+                      <div
+                        key={j}
+                        className="rounded-md bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
+                      >
+                        {tc.tool}({formatToolInput(tc.input)})
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {msg.role === "user" ? (
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                ) : (
+                  <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none [&_table]:text-xs [&_th]:px-2 [&_th]:py-1 [&_td]:px-2 [&_td]:py-1 [&_table]:border-collapse [&_th]:border [&_th]:border-zinc-200 [&_td]:border [&_td]:border-zinc-200 dark:[&_th]:border-zinc-700 dark:[&_td]:border-zinc-700">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -122,10 +161,11 @@ export default function Home() {
           {isLoading && (
             <div className="flex justify-start">
               <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
                   <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
                   <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" />
+                  <span className="ml-2 text-xs text-zinc-400">Analyzing...</span>
                 </div>
               </div>
             </div>
