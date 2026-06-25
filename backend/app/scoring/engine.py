@@ -73,11 +73,11 @@ def compare_airports(iata_codes: list[str]) -> ComparisonResult | None:
     ]
 
     for attr, label in metrics:
-        best = max(scores, key=lambda s: getattr(s, attr))
-        worst = min(scores, key=lambda s: getattr(s, attr))
+        highest = max(scores, key=lambda s: getattr(s, attr))
+        lowest = min(scores, key=lambda s: getattr(s, attr))
         analysis[label] = (
-            f"{best.iata} leads at {getattr(best, attr):.1f}, "
-            f"{worst.iata} lowest at {getattr(worst, attr):.1f}"
+            f"{highest.iata} highest at {getattr(highest, attr):.1f}, "
+            f"{lowest.iata} lowest at {getattr(lowest, attr):.1f}"
         )
 
     growth_scores = [(s, s.growth_score) for s in scores if s.growth_score is not None]

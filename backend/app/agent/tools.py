@@ -223,7 +223,13 @@ async def handle_get_airport_status(iata_code: str) -> dict[str, Any]:
                     "note": "Live status unavailable; historical data from other tools is still valid",
                 }
 
-        root = ET.fromstring(response.text)
+        try:
+            root = ET.fromstring(response.text)
+        except ET.ParseError:
+            return {
+                "error": "FAA API returned invalid data",
+                "note": "Live status unavailable; historical data from other tools is still valid",
+            }
         update_time = root.findtext("Update_Time", "")
 
         delays: list[dict[str, Any]] = []
@@ -291,5 +297,8 @@ async def dispatch_tool(name: str, arguments: dict[str, Any]) -> str:
     handler = TOOL_HANDLERS.get(name)
     if handler is None:
         return json.dumps({"error": f"Unknown tool: {name}"})
-    result = await handler(**arguments)
+    try:
+        result = await handler(**arguments)
+    except TypeError as e:
+        return json.dumps({"error": f"Invalid arguments for {name}: {e}"})
     return json.dumps(result, default=str)
