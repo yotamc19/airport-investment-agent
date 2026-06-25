@@ -11,7 +11,7 @@ An AI-powered agent that helps investment analysts identify airports where renov
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Frontend                             │
-│                   (Next.js + React)                         │
+│                    (Vite + React)                           │
 │                                                             │
 │  ┌──────────┐  ┌──────────────┐  ┌───────────────────────┐ │
 │  │ InputBar │→ │ useChat hook │→ │ POST /chat            │ │
